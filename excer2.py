@@ -52,33 +52,28 @@ led_5=board.get_pin('d:9:o')
 def led(total,led_1,led_2,led_3,led_4,led_5):#creat condition to controll digital out put
     
     print(fingers)
-    
-    if fingers[0] == 1:
-        led_1.write(1)
-    else:
+
+    if total == 0:
         led_1.write(0)
-    if fingers[1] == 1:
-        led_2.write(1)
-    else:
         led_2.write(0)
-    if fingers[2] == 1:
-        led_3.write(1)
-    else:
         led_3.write(0)
-    if fingers[3] == 1:
-        led_4.write(1)
-    else:
         led_4.write(0)
-    if fingers[4] == 1:
-        led_5.write(1)
-    else:
         led_5.write(0)
+    else:
+        led_1.write(1 if fingers[0] == 1 else 0)
+        led_2.write(1 if fingers[1] == 1 else 0)
+        led_3.write(1 if fingers[2] == 1 else 0)
+        led_4.write(1 if fingers[3] == 1 else 0)
+        led_5.write(1 if fingers[4] == 1 else 0)
+
+    
 
 video=cv2.VideoCapture(int(cport)) #OpenCamera at index position 0
 
 with mp_hand.Hands(min_detection_confidence=0.5,
                min_tracking_confidence=0.5) as hands:#(min_detection_confidence, min_tracking_confidence) are Value to considered for detect and tracking image
     while True:
+        fingers = []
         ret,image=video.read() #Read frame in camera video
         image=cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  #convert color BGR to RGB
         image.flags.writeable=False  #to improve nothing drawed in image
@@ -94,7 +89,10 @@ with mp_hand.Hands(min_detection_confidence=0.5,
                     cx,cy= int(lm.x*w), int(lm.y*h)
                     lmList.append([id,cx,cy])  #input number hand_landmark position and position of spot position hand_landmark
                 mp_draw.draw_landmarks(image, hand_landmark, mp_hand.HAND_CONNECTIONS)  #drawing hand skeleton from hand_landmark point
-        fingers=[]
+        else:
+            led(0, led_1, led_2, led_3, led_4, led_5)
+            total = 0
+
         if len(lmList)!=0:
             #Thumb check (LHS and RHS conditions) (x-position)
             if lmList[9][1]<lmList[5][1]:
@@ -124,6 +122,8 @@ with mp_hand.Hands(min_detection_confidence=0.5,
             total=fingers.count(1)
 
             led(total,led_1,led_2,led_3,led_4,led_5) #import function in module to control arduino output
+            
+            
             """
             creat condition to put text in frame
 
